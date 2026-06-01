@@ -39,3 +39,31 @@ jobs:
         with:
           name: coverage-py${{ matrix.python-version }}
           path: coverage.xml
+  # ═══ NOTIFICATION JOB ═══
+  notify-on-failure:
+    name: Xato haqida xabar yuborish
+    runs-on: ubuntu-latest
+    needs: test
+    if: failure()   # FAQAT test job'laridan birortasi muvaffaqiyatsiz (failed) bo'lganda ishlaydi
+
+    steps:
+      - name: Email yuborish
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_APP_PASSWORD }}
+          subject: '[XATO] CI Pipeline muvaffaqiyatsiz: ${{ github.repository }}'
+          to: ${{ secrets.NOTIFY_EMAIL }}
+          from: GitHub Actions
+          body: |
+            CI Pipeline muvaffaqiyatsiz tugadi!
+
+            Repo: ${{ github.repository }}
+            Branch: ${{ github.ref_name }}
+            Commit: ${{ github.sha }}
+            Kim push qildi: ${{ github.actor }}
+            Xabar: ${{ github.event.head_commit.message }}
+
+            Batafsil ko'rish va tekshirish: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
